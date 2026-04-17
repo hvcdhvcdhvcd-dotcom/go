@@ -1,0 +1,109 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#1a1a1a">
+
+    <!-- ═══════════════════════════════════════════════════════════════
+         【模块 6】摄像头预览层（障碍检测使用）
+         注意：这是背景层，显示摄像头画面
+         ═══════════════════════════════════════════════════════════════ -->
+    <androidx.camera.view.PreviewView
+        android:id="@+id/camera_preview"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:visibility="gone" />
+
+    <!-- ═══════════════════════════════════════════════════════════════
+         【模块 6】检测框叠加层（显示 YOLO 检测结果）
+         注意：绘制在摄像头预览上方，显示障碍物的检测框
+         ═══════════════════════════════════════════════════════════════ -->
+    <View
+        android:id="@+id/overlay_view"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:visibility="gone" />
+
+    <!-- ═══════════════════════════════════════════════════════════════
+         【模块 2】UI 信息层（显示在前景）
+         包含所有导航相关的文字信息和按钮
+         ═══════════════════════════════════════════════════════════════ -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        android:padding="16dp">
+
+        <!-- 导航状态标题 -->
+        <TextView
+            android:id="@+id/navi_title"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="导航进行中"
+            android:textSize="28sp"
+            android:textStyle="bold"
+            android:textColor="#ffffff"
+            android:gravity="center"
+            android:paddingTop="20dp"
+            android:paddingBottom="20dp" />
+
+        <!-- 大字导航提示（主指令） -->
+        <TextView
+            android:id="@+id/navi_instruction"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:text="准备出发"
+            android:textSize="48sp"
+            android:textStyle="bold"
+            android:textColor="#00ff00"
+            android:gravity="center"
+            android:padding="20dp" />
+
+        <!-- 距离提示 -->
+        <TextView
+            android:id="@+id/navi_distance"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="距离目的地：0 公里"
+            android:textSize="32sp"
+            android:textColor="#ffffff"
+            android:gravity="center"
+            android:padding="10dp" />
+
+        <!-- 预计时间 -->
+        <TextView
+            android:id="@+id/navi_time"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="预计时间：0 分钟"
+            android:textSize="28sp"
+            android:textColor="#cccccc"
+            android:gravity="center"
+            android:padding="10dp" />
+
+        <!-- 下一步转向提示 -->
+        <TextView
+            android:id="@+id/navi_next"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="下一步：直行"
+            android:textSize="36sp"
+            android:textStyle="bold"
+            android:textColor="#ffff00"
+            android:gravity="center"
+            android:padding="20dp" />
+
+        <!-- 退出按钮 -->
+        <Button
+            android:id="@+id/btn_exit_navi"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="退出导航"
+            android:textSize="24sp"
+            android:padding="15dp"
+            android:layout_marginTop="20dp" />
+
+    </LinearLayout>
+
+</FrameLayout>
