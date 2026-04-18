@@ -43,7 +43,10 @@ import androidx.core.content.ContextCompat
 import ai.onnxruntime.OnnxTensor
 import ai.onnxruntime.OrtEnvironment
 import ai.onnxruntime.OrtSession
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.ui.text.font.FontWeight
 import com.example.myapplication.ui.theme.MyApplicationTheme
+import kotlinx.coroutines.delay
 import java.util.*
 import java.util.concurrent.Executors
 
@@ -226,9 +229,19 @@ class MainActivity : ComponentActivity(), TextToSpeech.OnInitListener {
     // onResume 时自增 resumeToken，触发 Compose LaunchedEffect 重新执行相机绑定
     override fun onResume() {
         super.onResume()
+        // 确保 appModeState 是检测模式
+        appModeState.value = AppMode.DETECTION
+        statusTextState.value = "障碍物检测运行中"
+
         if (cameraReadyState.value) {
-            resumeToken.value += 1
-            Log.d(TAG, "📷 onResume 触发相机重绑 token=${resumeToken.value}")
+            // 先设置为 false，强制触发重新绑定
+            cameraReadyState.value = false
+            // 延迟后重新设置为 true
+            mainHandler.postDelayed({
+                cameraReadyState.value = true
+                resumeToken.value += 1
+            }, 100)
+            Log.d(TAG, "📷 onResume 强制重绑相机")
         }
     }
 
@@ -257,16 +270,25 @@ class MainActivity : ComponentActivity(), TextToSpeech.OnInitListener {
             PreviewView(context).apply { scaleType = PreviewView.ScaleType.FILL_CENTER }
         }
 
+        // 添加一个状态来跟踪 PreviewView 是否已准备好
+        var isPreviewViewReady by remember { mutableStateOf(false) }
+
         // ✅ 修复问题三：key 同时监听 cameraReady 和 resumeTok
         // 返回 MainActivity 时 resumeTok 变化，相机重新绑定，解决黑屏
         LaunchedEffect(cameraReady, resumeTok) {
             if (!cameraReady) return@LaunchedEffect
+
+            // 等待 PreviewView 准备好
+            delay(300)
             Log.d(TAG, "📷 开始绑定相机 resumeTok=$resumeTok")
 
             val future = ProcessCameraProvider.getInstance(context)
             future.addListener({
                 runCatching {
                     val provider = future.get()
+
+                    // 重要：先解绑所有用例
+                    provider.unbindAll()
                     val preview  = androidx.camera.core.Preview.Builder().build()
                         .also { it.setSurfaceProvider(previewView.surfaceProvider) }
 
@@ -287,7 +309,7 @@ class MainActivity : ComponentActivity(), TextToSpeech.OnInitListener {
                             }
                         }
 
-                    provider.unbindAll()
+//                    provider.unbindAll()
                     provider.bindToLifecycle(
                         lifecycleOwner, CameraSelector.DEFAULT_BACK_CAMERA, preview, analysis
                     )
@@ -302,10 +324,11 @@ class MainActivity : ComponentActivity(), TextToSpeech.OnInitListener {
         }
 
         // ── 布局 ─────────────────────────────────────────
+// ── 布局 ─────────────────────────────────────────
         Box(modifier = Modifier.fillMaxSize()) {
 
             // 相机预览（始终铺满屏幕）
-            AndroidView(factory = { previewView }, modifier = Modifier.fillMaxSize())
+            AndroidView(factory = { previewView }, modifier = Modifier.fillMaxSize(),onRelease = { /* 清理 */ })
 
             // 检测框（仅 DETECTION 模式）
             if (mode == AppMode.DETECTION) {
@@ -328,54 +351,68 @@ class MainActivity : ComponentActivity(), TextToSpeech.OnInitListener {
                 )
             }
 
-            // 底部控制区
+            // ========== 底部控制区（三层垂直排列） ==========
             Column(
                 modifier = Modifier
                     .align(Alignment.BottomCenter)
                     .fillMaxWidth()
-                    .padding(16.dp),
+                    .padding(bottom = 32.dp, start = 20.dp, end = 20.dp),
                 horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.spacedBy(8.dp)
+                verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
-                // 状态文字
+                // 状态文字（顶部）
                 Surface(
                     color = androidx.compose.ui.graphics.Color(0xCC000000),
-                    shape = MaterialTheme.shapes.medium
+                    shape = RoundedCornerShape(12.dp)
                 ) {
                     Text(
                         statusText,
                         color = Color.White,
-                        fontSize = 15.sp,
-                        modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
+                        fontSize = 14.sp,
+                        modifier = Modifier.padding(horizontal = 20.dp, vertical = 10.dp)
                     )
                 }
-                // 按钮
-                Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                    Button(
-                        onClick = { switchToDetection() },
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor =
-                                if (mode == AppMode.DETECTION) androidx.compose.ui.graphics.Color(0xFFD32F2F)
-                                else androidx.compose.ui.graphics.Color(0xFF616161)
-                        )
-                    ) { Text("障碍检测") }
 
-                    Button(
-                        onClick = { startVoiceCommand() },
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = androidx.compose.ui.graphics.Color(0xFF1565C0)
-                        )
-                    ) { Text("🎤 语音指令") }
+                // 第一层：障碍检测按钮
+                Button(
+                    onClick = { switchToDetection() },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(56.dp),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = if (mode == AppMode.DETECTION) Color(0xFF4CAF50)
+                        else Color(0xFF424242)
+                    ),
+                    shape = RoundedCornerShape(12.dp)
+                ) {
+                    Text("障碍检测", fontSize = 16.sp, fontWeight = FontWeight.Medium)
+                }
 
-                    Button(
-                        onClick = {
-                            val intent = Intent(context, IntegratedNaviActivity::class.java)
-                            context.startActivity(intent)
-                        },
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = androidx.compose.ui.graphics.Color(0xFF388E3C)
-                        )
-                    ) { Text("实时检测障碍导航") }
+                // 第二层：语音指令按钮
+                Button(
+                    onClick = { startVoiceCommand() },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(56.dp),
+                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF1976D2)),
+                    shape = RoundedCornerShape(12.dp)
+                ) {
+                    Text("语音指令", fontSize = 16.sp, fontWeight = FontWeight.Medium)
+                }
+
+                // 第三层：导航按钮
+                Button(
+                    onClick = {
+                        val intent = Intent(context, IntegratedNaviActivity::class.java)
+                        context.startActivity(intent)
+                    },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(56.dp),
+                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFE65100)),
+                    shape = RoundedCornerShape(12.dp)
+                ) {
+                    Text("实时检测障碍导航", fontSize = 16.sp, fontWeight = FontWeight.Medium)
                 }
             }
         }
@@ -778,7 +815,7 @@ class MainActivity : ComponentActivity(), TextToSpeech.OnInitListener {
     private fun modeLabel(mode: AppMode) = when (mode) {
         AppMode.IDLE       -> "⏳ 待机"
         AppMode.NAVIGATION -> "🗺 导航中"
-        AppMode.DETECTION  -> "👁 障碍检测"
+        AppMode.DETECTION  -> " 障碍检测"
         AppMode.AI_SCENE   -> "🤖 AI识别"
     }
 

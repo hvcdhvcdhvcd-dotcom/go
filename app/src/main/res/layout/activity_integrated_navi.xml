@@ -2,26 +2,30 @@
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:background="#000000">
 
     <!-- 相机预览（全屏） -->
+
+    <!-- 顶部返回按钮 -->
+
     <androidx.camera.view.PreviewView
         android:id="@+id/previewView"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:scaleType="fitCenter" />
 
-    <!-- 顶部返回按钮 -->
     <ImageButton
         android:id="@+id/btnBack"
         android:layout_width="48dp"
         android:layout_height="48dp"
         android:layout_margin="16dp"
-        android:background="@android:color/transparent"
-        android:src="@android:drawable/ic_media_previous"
-        android:tint="#FFFFFF"
-        android:contentDescription="返回" />
-
+        android:background="?android:attr/selectableItemBackgroundBorderless"
+        android:contentDescription="返回"
+        android:src="@android:drawable/ic_menu_revert"
+        android:scaleX="1.5"
+        android:scaleY="1.5"
+        app:tint="#FFFFFF" />
     <!-- 底部导航信息面板（半透明黑色背景） -->
     <LinearLayout
         android:layout_width="match_parent"
