@@ -328,26 +328,28 @@ class MainActivity : ComponentActivity(), TextToSpeech.OnInitListener {
         Box(modifier = Modifier.fillMaxSize()) {
 
             // 相机预览（始终铺满屏幕）
-            AndroidView(factory = { previewView }, modifier = Modifier.fillMaxSize(),onRelease = { /* 清理 */ })
+            AndroidView(factory = { previewView }, modifier = Modifier.fillMaxSize(), onRelease = { /* 清理 */ })
 
             // 检测框（仅 DETECTION 模式）
             if (mode == AppMode.DETECTION) {
                 DetectionOverlay(detections)
             }
 
-            // 顶部模式标签
+            // 顶部模式标签（微调：增加圆角和内边距）
             Surface(
                 modifier = Modifier
                     .align(Alignment.TopCenter)
                     .padding(top = 52.dp),
-                color = modeColor(mode).copy(alpha = 0.82f),
-                shape = MaterialTheme.shapes.medium
+                color = modeColor(mode).copy(alpha = 0.92f),
+                shape = RoundedCornerShape(32.dp),  // 更大圆角，更现代
+                shadowElevation = 4.dp  // 轻微阴影，增加层次感
             ) {
                 Text(
                     modeLabel(mode),
                     color = Color.White,
-                    fontSize = 14.sp,
-                    modifier = Modifier.padding(horizontal = 14.dp, vertical = 5.dp)
+                    fontSize = 15.sp,
+                    fontWeight = FontWeight.Bold,
+                    modifier = Modifier.padding(horizontal = 18.dp, vertical = 8.dp)
                 )
             }
 
@@ -356,20 +358,22 @@ class MainActivity : ComponentActivity(), TextToSpeech.OnInitListener {
                 modifier = Modifier
                     .align(Alignment.BottomCenter)
                     .fillMaxWidth()
-                    .padding(bottom = 32.dp, start = 20.dp, end = 20.dp),
+                    .padding(bottom = 36.dp, start = 20.dp, end = 20.dp),
                 horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.spacedBy(12.dp)
+                verticalArrangement = Arrangement.spacedBy(14.dp)
             ) {
-                // 状态文字（顶部）
+                // 状态文字（微调：增加圆角和内边距）
                 Surface(
                     color = androidx.compose.ui.graphics.Color(0xCC000000),
-                    shape = RoundedCornerShape(12.dp)
+                    shape = RoundedCornerShape(24.dp),  // 更大圆角
+                    shadowElevation = 2.dp  // 轻微阴影
                 ) {
                     Text(
                         statusText,
                         color = Color.White,
                         fontSize = 14.sp,
-                        modifier = Modifier.padding(horizontal = 20.dp, vertical = 10.dp)
+                        fontWeight = FontWeight.Medium,
+                        modifier = Modifier.padding(horizontal = 22.dp, vertical = 10.dp)
                     )
                 }
 
@@ -378,14 +382,23 @@ class MainActivity : ComponentActivity(), TextToSpeech.OnInitListener {
                     onClick = { switchToDetection() },
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(56.dp),
+                        .height(58.dp),
                     colors = ButtonDefaults.buttonColors(
                         containerColor = if (mode == AppMode.DETECTION) Color(0xFF4CAF50)
-                        else Color(0xFF424242)
+                        else Color(0xFF37474F)  // 深灰蓝，更柔和
                     ),
-                    shape = RoundedCornerShape(12.dp)
+                    shape = RoundedCornerShape(14.dp),  // 稍大圆角
+                    elevation = ButtonDefaults.buttonElevation(
+                        defaultElevation = 2.dp,
+                        pressedElevation = 4.dp
+                    )
                 ) {
-                    Text("障碍检测", fontSize = 16.sp, fontWeight = FontWeight.Medium)
+                    Text(
+                        "障碍检测",
+                        fontSize = 17.sp,
+                        fontWeight = FontWeight.SemiBold,
+                        letterSpacing = 0.3.sp  // 轻微字间距
+                    )
                 }
 
                 // 第二层：语音指令按钮
@@ -393,11 +406,22 @@ class MainActivity : ComponentActivity(), TextToSpeech.OnInitListener {
                     onClick = { startVoiceCommand() },
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(56.dp),
-                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF1976D2)),
-                    shape = RoundedCornerShape(12.dp)
+                        .height(58.dp),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = Color(0xFF0288D1)  // 明亮的深蓝色
+                    ),
+                    shape = RoundedCornerShape(14.dp),
+                    elevation = ButtonDefaults.buttonElevation(
+                        defaultElevation = 2.dp,
+                        pressedElevation = 4.dp
+                    )
                 ) {
-                    Text("语音指令", fontSize = 16.sp, fontWeight = FontWeight.Medium)
+                    Text(
+                        "语音指令",
+                        fontSize = 17.sp,
+                        fontWeight = FontWeight.SemiBold,
+                        letterSpacing = 0.3.sp
+                    )
                 }
 
                 // 第三层：导航按钮
@@ -408,11 +432,22 @@ class MainActivity : ComponentActivity(), TextToSpeech.OnInitListener {
                     },
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(56.dp),
-                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFE65100)),
-                    shape = RoundedCornerShape(12.dp)
+                        .height(58.dp),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = Color(0xFFF57C00)  // 温暖的橙色
+                    ),
+                    shape = RoundedCornerShape(14.dp),
+                    elevation = ButtonDefaults.buttonElevation(
+                        defaultElevation = 2.dp,
+                        pressedElevation = 4.dp
+                    )
                 ) {
-                    Text("实时检测障碍导航", fontSize = 16.sp, fontWeight = FontWeight.Medium)
+                    Text(
+                        "实时检测障碍导航",
+                        fontSize = 17.sp,
+                        fontWeight = FontWeight.SemiBold,
+                        letterSpacing = 0.3.sp
+                    )
                 }
             }
         }
