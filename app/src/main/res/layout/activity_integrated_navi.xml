@@ -238,7 +238,7 @@
             android:id="@+id/btnVoiceCommand"
             android:layout_width="match_parent"
             android:layout_height="52dp"
-            android:text="🎤 语音指令"
+            android:text="语音指令"
             android:textSize="16sp"
             android:textStyle="bold"
             android:backgroundTint="#1976D2"
