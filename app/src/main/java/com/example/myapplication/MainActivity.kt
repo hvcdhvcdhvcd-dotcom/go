@@ -699,15 +699,17 @@ class MainActivity : ComponentActivity(), TextToSpeech.OnInitListener {
             Toast.makeText(this, "设备不支持语音识别", Toast.LENGTH_SHORT).show()
             return
         }
-//        statusTextState.value = "准备聆听…"
-//        speak("请说出指令")
-//        mainHandler.postDelayed({ doStartListening() }, 1500) // 等 TTS 播完
+         statusTextState.value = "准备聆听…"
+         speak("请说出指令")
+         mainHandler.postDelayed({ doStartListening() }, 1500) // 等 TTS 播完
         // 使用新的语音助手对话框
-        VoiceAssistantDialog.show(this) { destination ->
-            // 用户确认后的回调
-            Log.d(TAG, "用户确认目的地: $destination")
-            handleVoiceCommand(destination)
-        }
+        VoiceAssistantDialog.show(
+            context = this,
+            onConfirm = { destination ->
+                handleVoiceCommand(destination)
+            }
+
+        )
     }
 
     private fun doStartListening() {
