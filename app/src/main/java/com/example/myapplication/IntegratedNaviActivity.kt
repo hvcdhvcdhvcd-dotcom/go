@@ -765,7 +765,7 @@ class IntegratedNaviActivity : Activity(), TextToSpeech.OnInitListener,
     }
 
     private fun shouldFilterDuplicateMessage(newMessage: VoiceMessage): Boolean {
-        // ✅ 修复问题二：只按内容完全相同才过滤，不再按类型（OBSTACLE）整体拦截
+        // 修复问题二：只按内容完全相同才过滤，不再按类型（OBSTACLE）整体拦截
         // 原逻辑中 "同类型就过滤" 会把所有障碍消息挡掉，导致导航时无法播报障碍
         val recentMessages = voiceQueue.filter {
             System.currentTimeMillis() - it.timestamp < 5000
@@ -792,16 +792,16 @@ class IntegratedNaviActivity : Activity(), TextToSpeech.OnInitListener,
         // 根据消息类型和优先级调整语音参数
         adjustTTSForMessage(message)
 
-        // ✅ 修复问题一：speak() 内部使用带 utteranceId 的调用，
-        //    TTS 播完后由 UtteranceProgressListener.onDone 回调 processVoiceQueue，
-        //    不再依赖延迟估算，彻底消除时序错位
+        // 修复问题一：speak() 内部使用带 utteranceId 的调用，
+        // TTS 播完后由 UtteranceProgressListener.onDone 回调 processVoiceQueue，
+        // 不再依赖延迟估算，彻底消除时序错位
         speakQueued(message.content)
 
         // 更新UI显示当前播报内容
         updateCurrentSpeaking(message.content, message.type)
     }
 
-    // ✅ 专门供队列调用的 speak，使用 QUEUE_ADD 避免截断自身队列内的消息
+    // 专门供队列调用的 speak，使用 QUEUE_ADD 避免截断自身队列内的消息
     private fun speakQueued(text: String) {
         if (ttsReady) {
             tts.speak(text, TextToSpeech.QUEUE_ADD, null, "queued_${System.currentTimeMillis()}")
@@ -881,7 +881,7 @@ class IntegratedNaviActivity : Activity(), TextToSpeech.OnInitListener,
 
     // ==================== 紧急情况快速响应机制 ====================
     fun handleEmergencySituation(detection: ObstacleDetection) {
-        // ✅ 修复问题二：立即打断并重置 isSpeaking，防止队列卡住
+        // 修复问题二：立即打断并重置 isSpeaking，防止队列卡住
         tts.stop()
         isSpeaking = false
         currentSpeakingMessage = null
@@ -956,9 +956,9 @@ class IntegratedNaviActivity : Activity(), TextToSpeech.OnInitListener,
             "请说出目的地，如：武汉大学、光谷广场、汉口火车站"
         }
 
-        // ✅ 修复问题一：先停止当前 TTS 播报，然后直接 speak prompt，
-        //    由 UtteranceProgressListener.onDone 完成后再启动识别，
-        //    消除"播完就没反应"问题（原因是 isSpeaking 延迟估算完成后识别器状态不对）
+        // 修复问题一：先停止当前 TTS 播报，然后直接 speak prompt，
+        // 由 UtteranceProgressListener.onDone 完成后再启动识别，
+        // 消除"播完就没反应"问题（原因是 isSpeaking 延迟估算完成后识别器状态不对）
         tts.stop()
         isSpeaking = false
 
@@ -977,7 +977,7 @@ class IntegratedNaviActivity : Activity(), TextToSpeech.OnInitListener,
 
     private fun doStartListening() {
         try {
-            // ✅ 修复问题一：只在未监听状态下重建识别器，避免多次 destroy 导致状态混乱
+            // 修复问题一：只在未监听状态下重建识别器，避免多次 destroy 导致状态混乱
             if (speechRecognizer == null) {
                 speechRecognizer = SpeechRecognizer.createSpeechRecognizer(this)
                 speechRecognizer?.setRecognitionListener(this)
@@ -1058,7 +1058,7 @@ class IntegratedNaviActivity : Activity(), TextToSpeech.OnInitListener,
         isListening = false
         btnVoiceCommand.text = "语音指令"
 
-        // ✅ 修复问题一：ERROR 后销毁识别器，下次 doStartListening 重新创建干净实例
+        // 修复问题一：ERROR 后销毁识别器，下次 doStartListening 重新创建干净实例
         speechRecognizer?.destroy()
         speechRecognizer = null
 
@@ -1251,9 +1251,9 @@ class IntegratedNaviActivity : Activity(), TextToSpeech.OnInitListener,
     }
 
     // ==================== 导航信息更新 ====================
-    // ✅ 修复问题二：记录上次播报的导航指令，避免每个定位 tick 都入队同一条消息
-    //    原代码每次 onNaviInfoUpdate 都 addVoiceMessage(IMPORTANT)，
-    //    高优先级消息持续占满队列，障碍消息永远排不上队
+    // 修复问题二：记录上次播报的导航指令，避免每个定位 tick 都入队同一条消息
+    // 原代码每次 onNaviInfoUpdate 都 addVoiceMessage(IMPORTANT)，
+    // 高优先级消息持续占满队列，障碍消息永远排不上队
     private var lastNavInstruction = ""
     private var lastNavSpeakTime = 0L
     private val navSpeakIntervalMs = 8000L // 导航语音最快每8秒一次
@@ -1308,8 +1308,8 @@ class IntegratedNaviActivity : Activity(), TextToSpeech.OnInitListener,
                 tts.setSpeechRate(0.9f)
                 tts.setPitch(1.0f)
 
-                // ✅ 修复问题一：用真实 TTS 播报完成回调驱动队列，
-                //    替代原来的延迟估算，消除时序错位导致语音识别无响应的问题
+                // 修复问题一：用真实 TTS 播报完成回调驱动队列，
+                // 替代原来的延迟估算，消除时序错位导致语音识别无响应的问题
                 tts.setOnUtteranceProgressListener(object : android.speech.tts.UtteranceProgressListener() {
                     override fun onStart(utteranceId: String?) {}
                     override fun onDone(utteranceId: String?) {
@@ -1337,7 +1337,7 @@ class IntegratedNaviActivity : Activity(), TextToSpeech.OnInitListener,
         }
     }
 
-    // ✅ 修复问题一：speak() 必须带 utteranceId，UtteranceProgressListener 才会回调
+    // 修复问题一：speak() 必须带 utteranceId，UtteranceProgressListener 才会回调
     private fun speak(text: String) {
         if (ttsReady) {
             tts.speak(text, TextToSpeech.QUEUE_FLUSH, null, "utt_${System.currentTimeMillis()}")
@@ -1348,7 +1348,7 @@ class IntegratedNaviActivity : Activity(), TextToSpeech.OnInitListener,
     override fun onDestroy() {
         super.onDestroy()
 
-        // ✅ 修复：先停止监听再销毁，避免 destroy 时内部状态异常
+        // 修复：先停止监听再销毁，避免 destroy 时内部状态异常
         try { speechRecognizer?.stopListening() } catch (_: Exception) {}
         speechRecognizer?.destroy()
         speechRecognizer = null

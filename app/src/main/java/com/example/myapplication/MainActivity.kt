@@ -50,14 +50,13 @@ import kotlinx.coroutines.delay
 import java.util.*
 import java.util.concurrent.Executors
 
-// ════════════════════════════════════════════════════════════
+
 // 应用模式
-// ════════════════════════════════════════════════════════════
 enum class AppMode {
     IDLE,        // 等待语音指令
-    NAVIGATION,  // 高德地图导航（预留）
+    NAVIGATION,  // 高德地图导航
     DETECTION,   // YOLOv10 实时检测
-    AI_SCENE     // AI 场景识别（预留）
+    AI_SCENE     // AI 场景识别
 }
 
 class MainActivity : ComponentActivity(), TextToSpeech.OnInitListener {
@@ -72,8 +71,6 @@ class MainActivity : ComponentActivity(), TextToSpeech.OnInitListener {
     private var ttsReady = false
 
     // ── UI 状态 ────────────────────────────────────────────
-    // cameraReadyState 控制相机何时绑定（权限通过后翻转为 true）
-    // resumeToken 每次 onResume 自增，强制 LaunchedEffect 重新绑定相机
     private val detectionState   = mutableStateOf<List<Detection>>(emptyList())
     private val appModeState     = mutableStateOf(AppMode.DETECTION) // 默认检测模式
     private val statusTextState  = mutableStateOf("正在初始化…")
@@ -181,7 +178,7 @@ class MainActivity : ComponentActivity(), TextToSpeech.OnInitListener {
         // 2. 初始化 TTS
         tts = TextToSpeech(this, this)
 
-        // ✅ 关键修复：先渲染 UI，解决白屏问题
+        // 键修复：先渲染 UI，解决白屏问题
         setContent {
             MyApplicationTheme {
                 MainScreen()
@@ -225,7 +222,7 @@ class MainActivity : ComponentActivity(), TextToSpeech.OnInitListener {
         }
     }
 
-    // ✅ 修复问题三：从导航返回时相机黑屏
+    // 修复问题三：从导航返回时相机黑屏
     // onResume 时自增 resumeToken，触发 Compose LaunchedEffect 重新执行相机绑定
     override fun onResume() {
         super.onResume()
@@ -273,7 +270,7 @@ class MainActivity : ComponentActivity(), TextToSpeech.OnInitListener {
         // 添加一个状态来跟踪 PreviewView 是否已准备好
         var isPreviewViewReady by remember { mutableStateOf(false) }
 
-        // ✅ 修复问题三：key 同时监听 cameraReady 和 resumeTok
+        // 修复问题三：key 同时监听 cameraReady 和 resumeTok
         // 返回 MainActivity 时 resumeTok 变化，相机重新绑定，解决黑屏
         LaunchedEffect(cameraReady, resumeTok) {
             if (!cameraReady) return@LaunchedEffect
@@ -323,7 +320,7 @@ class MainActivity : ComponentActivity(), TextToSpeech.OnInitListener {
             }, ContextCompat.getMainExecutor(context))
         }
 
-        // ── 布局 ─────────────────────────────────────────
+
 // ── 布局 ─────────────────────────────────────────
         Box(modifier = Modifier.fillMaxSize()) {
 
@@ -454,8 +451,8 @@ class MainActivity : ComponentActivity(), TextToSpeech.OnInitListener {
     }
 
     // ════════════════════════════════════════════════════════
-    // ✅ 检测框绘制（修复 Canvas 坐标系混用问题）
-    //    边框用 Compose drawRect，文字用 nativeCanvas（支持中文）
+    // 检测框绘制（修复 Canvas 坐标系混用问题）
+    // 边框用 Compose drawRect，文字用 nativeCanvas（支持中文）
     // ════════════════════════════════════════════════════════
     @Composable
     fun DetectionOverlay(detections: List<Detection>) {
@@ -546,7 +543,7 @@ class MainActivity : ComponentActivity(), TextToSpeech.OnInitListener {
     }
 
     // ════════════════════════════════════════════════════════
-    // ✅ Letterbox 预处理（保持宽高比，提升准确率）
+    // Letterbox 预处理（保持宽高比，提升准确率）
     // ════════════════════════════════════════════════════════
     private fun letterboxBitmap(src: Bitmap, target: Int): Bitmap {
         val scale  = minOf(target.toFloat() / src.width, target.toFloat() / src.height)
@@ -625,7 +622,7 @@ class MainActivity : ComponentActivity(), TextToSpeech.OnInitListener {
     }
 
     // ════════════════════════════════════════════════════════
-    // ✅ 旋转坐标变换（传感器坐标系 → 屏幕坐标系）
+    // 旋转坐标变换（传感器坐标系 → 屏幕坐标系）
     // ════════════════════════════════════════════════════════
     private fun rotateNormalizedBox(box: RectF, rotation: Int): RectF = when (rotation) {
         90  -> RectF((1f - box.bottom).coerceIn(0f, 1f),
@@ -683,9 +680,9 @@ class MainActivity : ComponentActivity(), TextToSpeech.OnInitListener {
     }
 
     // ════════════════════════════════════════════════════════
-    // ✅ 修复语音识别 ERROR 9（INSUFFICIENT_PERMISSIONS）
-    //    先检查麦克风权限 → 有权限才创建 SpeechRecognizer
-    //    另外 TTS 播报和录音之间加 1.5s 延迟，避免录到自己的声音
+    // 修复语音识别 ERROR 9（INSUFFICIENT_PERMISSIONS）
+    // 先检查麦克风权限 → 有权限才创建 SpeechRecognizer
+    // 另外 TTS 播报和录音之间加 1.5s 延迟，避免录到自己的声音
     // ════════════════════════════════════════════════════════
     private fun startVoiceCommand() {
         if (!hasPerm(Manifest.permission.RECORD_AUDIO)) {
@@ -823,14 +820,8 @@ class MainActivity : ComponentActivity(), TextToSpeech.OnInitListener {
         }
     }
 
-    /**
-     * 高德地图导航（预留接口）
-     * 集成步骤：
-     *  1. build.gradle.kts：implementation("com.amap.api:navi-3dmap:latest.release")
-     *  2. AndroidManifest.xml：
-     *     <meta-data android:name="com.amap.api.v2.apikey" android:value="YOUR_AMAP_KEY"/>
-     *  3. 替换下方 TODO 为 AMapNavi 调用
-     */
+    //高德地图导航（预留接口）
+
     private fun startNavigation(destination: String) {
         appModeState.value    = AppMode.NAVIGATION
         statusTextState.value = "正在规划「$destination」的路线…"
